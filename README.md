@@ -1,81 +1,160 @@
 # Intelligent Research Assistant using RAG and Endee Vector Database
 
-This project is a production-ready Intelligent Research Assistant designed to help researchers and students efficiently interact with academic papers. By leveraging **Retrieval Augmented Generation (RAG)**, the system answers user queries with precise citations, grounded strictly in the provided document context.
+## Project Overview
 
-The core of this application is built on the **Endee Vector Database**, utilizing its high-performance C++ backend for low-latency vector search and retrieval.
+The **Intelligent Research Assistant** is a production-ready AI system that enables users to interact with academic PDF documents through natural language queries.  
+By leveraging **Retrieval Augmented Generation (RAG)**, the system provides **accurate, context-aware answers with page-level citations**, ensuring reliability and trust in the generated responses.
+
+The application is built around the **Endee Vector Database**, which offers a high-performance C++ backend for fast and scalable semantic search.
+
+---
 
 ## Problem Statement
-Researchers often struggle to find specific information within lengthy academic PDFs. Standard keyword search is insufficient for understanding context. This project solves that problem by implementing:
-1.  **Semantic Search**: Understanding the meaning behind a query rather than just matching keywords.
-2.  **Generative Answers**: synthesizing retrieved information into a coherent answer.
-3.  **Source Attribution**: Providing page-level citations to build trust in the AI's output.
 
-## Architecture & Technical Approach
+Researchers and students often spend significant time manually searching through lengthy academic papers. Traditional keyword-based search fails to capture context, intent, and semantic meaning.
 
-### 1. Vector Database: Endee
-We use **Endee** (https://github.com/EndeeLabs/endee) as the dedicated vector store. Endee was chosen for its:
-*   **Performance**: Highly optimized C++ core for fast nearest-neighbor search.
-*   **Scalability**: Efficient management of high-dimensional embeddings.
-*   **Simplicity**: Clean API structure for vector insertion and retrieval.
+This project addresses the problem by:
+- Understanding queries semantically rather than syntactically
+- Retrieving only the most relevant document sections
+- Generating concise answers grounded strictly in source documents
+- Providing page-level citations to verify every response
 
-### 2. Retrieval Augmented Generation (RAG) Pipeline
-The system follows a standard RAG workflow:
-1.  **Ingestion**: PDFs are uploaded, text is extracted, and split into overlapping chunks (size: 500 chars, overlap: 50).
-2.  **Embedding**: Chunks are converted into 384-dimensional vectors using `sentence-transformers/all-MiniLM-L6-v2`.
-3.  **Storage**: Vectors and metadata (filename, page number) are indexed in Endee.
-4.  **Retrieval**: User queries are converted to vectors, and Endee performs a similarity search to find the top 5 most relevant chunks.
-5.  **Generation**: The retrieved context is passed to Groq (Llama 3.1), which generates an answer citing the specific sources.
+---
 
-### 3. Backend (FastAPI)
-The backend is built with **FastAPI** for asynchronous performance. Key endpoints:
-*   `POST /upload`: Handles PDF processing and vector indexing.
-*   `POST /chat`: Manages the RAG inference loop.
+## System Design and Technical Approach
 
-### 4. Frontend (Streamlit)
-A clean, responsive user interface built with **Streamlit** allows users to upload documents and chat with the assistant in real-time.
+The system follows a **Retrieval Augmented Generation (RAG)** architecture, separating retrieval from generation to ensure accuracy and transparency.
+
+### High-Level Workflow
+1. Academic PDFs are uploaded by the user
+2. Text is extracted and split into overlapping chunks
+3. Each chunk is converted into vector embeddings
+4. Embeddings are stored and indexed in the Endee vector database
+5. User queries are embedded and matched semantically
+6. Relevant document context is retrieved
+7. A large language model generates answers using retrieved context only
+
+---
+
+## Use of Endee Vector Database
+
+**Endee** is used as the core vector storage and retrieval engine.
+
+It was chosen for:
+- **Performance**: Optimized C++ core enables low-latency nearest-neighbor search
+- **Scalability**: Efficient handling of high-dimensional embeddings
+- **Clean API**: Simple vector insertion and similarity search interface
+
+### How Endee is Used
+- Stores 384-dimensional embeddings generated from document chunks
+- Indexes vectors along with metadata (file name, page number)
+- Performs similarity search to retrieve the top relevant chunks for each query
+- Acts as the retrieval backbone for the RAG pipeline
+
+---
+
+## Retrieval Augmented Generation (RAG) Pipeline
+
+1. **Ingestion**  
+   PDFs are processed and split into overlapping chunks  
+   - Chunk size: 500 characters  
+   - Overlap: 50 characters  
+
+2. **Embedding**  
+   Each chunk is converted into embeddings using  
+   `sentence-transformers/all-MiniLM-L6-v2`
+
+3. **Storage**  
+   Embeddings and metadata are indexed into Endee
+
+4. **Retrieval**  
+   User queries are embedded and matched against stored vectors  
+   Top 5 most relevant chunks are retrieved
+
+5. **Generation**  
+   Retrieved context is passed to **Llama 3.1 (via Groq)**  
+   The model generates an answer with explicit source citations
+
+---
+
+## Backend Architecture
+
+The backend is implemented using **FastAPI**, chosen for its performance and asynchronous capabilities.
+
+### Key API Endpoints
+- `POST /upload`  
+  Handles PDF ingestion, chunking, embedding, and indexing
+- `POST /chat`  
+  Executes the RAG pipeline for question answering
+
+---
+
+## Frontend Interface
+
+The frontend is built using **Streamlit**, providing a clean and intuitive user interface.
+
+Users can:
+- Upload research PDFs
+- Ask questions in natural language
+- View answers along with page-level citations
+
+---
 
 ## Technology Stack
-*   **Vector Database**: Endee
-*   **LLM Inference**: Groq (Llama-3.1-8b-instant)
-*   **Embeddings**: sentence-transformers
-*   **Backend Framework**: FastAPI
-*   **Frontend Framework**: Streamlit
-*   **Language**: Python 3.9+
+
+- Vector Database: Endee  
+- LLM Inference: Groq (Llama-3.1-8b-instant)  
+- Embeddings: sentence-transformers  
+- Backend: FastAPI  
+- Frontend: Streamlit  
+- Language: Python 3.9+
+
+---
 
 ## Setup and Execution Instructions
 
 ### Prerequisites
-*   Docker (for running Endee)
-*   Python 3.9 or higher
-*   Git
+- Docker
+- Python 3.9 or higher
+- Git
+
+---
 
 ### Step 1: Start Endee Vector Database
-Endee must be running as a service.
-1.  Clone the Endee repository:
-    ```bash
-    git clone https://github.com/EndeeLabs/endee
-    cd endee
-    ```
-2.  Build and run the server (ensure you select the flag matching your CPU, e.g., --avx2):
-    ```bash
-    ./install.sh --release --avx2
-    ./run.sh
-    ```
+
+```bash
+git clone https://github.com/EndeeLabs/endee
+cd endee
+```
+
+Build and run the server (choose the correct CPU flag):
+
+```bash
+./install.sh --release --avx2
+./run.sh
+```
 
 ### Step 2: Configure Project Environment
-1.  Clone this repository and navigate to the root directory.
-2.  Create a virtual environment:
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
-3.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+
+Clone this repository and navigate to the project root directory.
+
+Create a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+```
+
+Install required dependencies:
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Step 3: Environment Variables
-Create a file named `.env` in the root directory and add your configurations:
+
+Create a `.env` file in the root directory and add the following configuration:
+
 ```
 GROQ_API_KEY=your_groq_api_key_here
 ENDEE_HOST=localhost
@@ -83,20 +162,31 @@ ENDEE_PORT=8080
 ```
 
 ### Step 4: Run the Application
+
 Open two separate terminal windows.
 
-**Terminal 1: Start Backend API**
+**Terminal 1 – Start Backend API**
+
 ```bash
 uvicorn backend.main:app --reload --port 8000
 ```
 
-**Terminal 2: Start Frontend UI**
+**Terminal 2 – Start Frontend UI**
+
 ```bash
 streamlit run frontend/app.py
 ```
 
+---
+
 ## Usage
-1.  Open your browser to the Streamlit local URL (default: `http://localhost:8501`).
-2.  Use the sidebar to upload a PDF research paper.
-3.  Wait for the processing confirmation.
-4.  Enter your question in the chat input. The system will respond with an answer and list the source pages used.
+
+1. Open the Streamlit application in your browser at `http://localhost:8501`
+
+2. Upload an academic PDF document using the sidebar
+
+3. Wait for the document to be processed and indexed
+
+4. Enter a question in the chat interface
+
+5. Receive an answer along with page-level source citations
